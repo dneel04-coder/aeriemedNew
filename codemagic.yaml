@@ -1,0 +1,152 @@
+workflows:
+
+  # ── Signed IPA → TestFlight ──────────────────────────────────────────────────
+  ios-signed:
+    name: iOS — Signed (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    working_directory: aeriemed
+
+    integrations:
+      app_store_connect: Codemagic
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: CocoaPods install
+        script: cd ios && pod install
+
+      - name: Set up code signing
+        script: |
+          set -e
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            com.aerie.aerimed1 \
+            --platform IOS \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build IPA
+        script: |
+          set -e
+          flutter build ipa --release
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+      email:
+        recipients:
+          - allamerican82consulting@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ── Unsigned IPA (no Apple Developer account required) ──────────────────────
+  ios-unsigned:
+    name: iOS — Unsigned (Sideload)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    working_directory: aeriemed
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: Build iOS (no codesign)
+        script: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        script: |
+          mkdir -p build/ios/unsigned/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/unsigned/Payload/
+          cd build/ios/unsigned
+          zip -r AerieMed-unsigned.ipa Payload/
+
+    artifacts:
+      - build/ios/unsigned/AerieMed-unsigned.ipa
+
+    publishing:
+      email:
+        recipients:
+          - allamerican82consulting@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ── Android APK ──────────────────────────────────────────────────────────────
+  android-release:
+    name: Android — APK
+    instance_type: linux_x2
+    max_build_duration: 60
+    working_directory: aeriemed
+
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: Build APK
+        script: flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+    publishing:
+      email:
+        recipients:
+          - allamerican82consulting@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ── Windows EXE ──────────────────────────────────────────────────────────────
+  windows-release:
+    name: Windows — EXE
+    instance_type: windows_x2
+    max_build_duration: 60
+    working_directory: aeriemed
+
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: Build Windows
+        script: flutter build windows --release
+
+      - name: Package ZIP
+        script: |
+          cd build/windows/x64/runner/Release
+          Compress-Archive -Path * -DestinationPath $env:CM_BUILD_DIR/AeriMed-windows.zip
+
+    artifacts:
+      - $env:CM_BUILD_DIR/AeriMed-windows.zip
+
+    publishing:
+      email:
+        recipients:
+          - allamerican82consulting@gmail.com
+        notify:
+          success: true
+          failure: true

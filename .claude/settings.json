@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\AeriMed\\\\aeriemed\" -Recurse -Filter \"*.dart\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Head -50)",
+      "Bash(ls /mnt/c/ 2>/dev/null || echo \"no wsl mount\")",
+      "Read(//mnt/**)",
+      "Read(//c/Users/dneel/AppData/Local/Pub/Cache/hosted/pub.dev/share_plus-12.0.2/lib/**)",
+      "Bash(openssl genrsa *)",
+      "Read(//tmp/**)",
+      "Bash(openssl rsa *)",
+      "Bash(flutter doctor *)",
+      "Read(//c/Users/dneel/.shorebird/bin/**)",
+      "Bash(\"C:\\\\Users\\\\dneel\\\\.shorebird\\\\bin\\\\cache\\\\flutter\\\\4e4e01790e6db777933e7e3f2aeb1c5312da85bf\\\\bin\\\\flutter.bat\" pub *)",
+      "Bash(flutter analyze *)"
+    ]
+  }
+}

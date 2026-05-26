@@ -1,0 +1,30 @@
+﻿name: AerieMed
+description: AerieMed - Private Medical Protocols Library
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_pdfview: ^1.3.2
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.0
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/protocols/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true

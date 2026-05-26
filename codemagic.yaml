@@ -14,6 +14,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      vars:
+        CERTIFICATE_PRIVATE_KEY: $CERTIFICATE_PRIVATE_KEY
 
     scripts:
       - name: Flutter packages

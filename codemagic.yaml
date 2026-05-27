@@ -16,9 +16,6 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.aerie.aerimed1
 
     scripts:
       - name: Flutter packages
@@ -26,6 +23,19 @@ workflows:
 
       - name: CocoaPods install
         script: cd ios && pod install
+
+      - name: Install certificate and profile
+        script: |
+          set -e
+          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/cert.p12
+          keychain initialize
+          keychain add-certificates --certificate /tmp/cert.p12 \
+            --certificate-password "$CM_CERTIFICATE_PASSWORD"
+          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_HOME"
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode \
+            > "$PROFILES_HOME/aerimed_appstore.mobileprovision"
+          xcode-project use-profiles
 
       - name: Build IPA
         script: flutter build ipa --release

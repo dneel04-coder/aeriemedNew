@@ -11,6 +11,8 @@ workflows:
       app_store_connect: Codemagic
 
     environment:
+      groups:
+        - AerieMed
       flutter: stable
       xcode: latest
       cocoapods: default

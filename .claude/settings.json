@@ -13,7 +13,17 @@
       "Bash(flutter doctor *)",
       "Read(//c/Users/dneel/.shorebird/bin/**)",
       "Bash(\"C:\\\\Users\\\\dneel\\\\.shorebird\\\\bin\\\\cache\\\\flutter\\\\4e4e01790e6db777933e7e3f2aeb1c5312da85bf\\\\bin\\\\flutter.bat\" pub *)",
-      "Bash(flutter analyze *)"
+      "Bash(flutter analyze *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Read(//c/Users/dneel/**)",
+      "Bash(git fetch *)",
+      "Bash(\"C:\\\\Program Files\\\\Git\\\\mingw64\\\\bin\\\\openssl.exe\" genrsa -out \"C:\\\\Users\\\\dneel\\\\cert_private_key_rsa.pem\" 2048)",
+      "Bash(ssh-keygen -t rsa -b 2048 -m PEM -f \"C:\\\\Users\\\\dneel\\\\cm_cert_key\" -q -N \"\")",
+      "Bash(\"C:\\\\Program Files\\\\Git\\\\mingw64\\\\bin\\\\openssl.exe\" req -new -key \"C:\\\\Users\\\\dneel\\\\cm_cert_key\" -out \"C:\\\\Users\\\\dneel\\\\cm_cert.csr\" -subj \"/emailAddress=allamerican82consulting@gmail.com/CN=AeriMed Distribution/C=US\")",
+      "Bash(cmd /c '\"C:\\\\Program Files\\\\Git\\\\mingw64\\\\bin\\\\openssl.exe\" req -new -key cm_cert_key -out cm_cert.csr -subj \"/emailAddress=allamerican82consulting@gmail.com/CN=AeriMed Distribution/C=US\" 2>&1 && echo CSR_OK')",
+      "Bash(bash -c '\"C:/Program Files/Git/mingw64/bin/openssl.exe\" req -new -key cm_cert_key -out cm_cert.csr -subj \"/emailAddress=allamerican82consulting@gmail.com/CN=AeriMed Distribution/C=US\" && echo CSR_OK')"
     ]
   }
 }

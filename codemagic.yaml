@@ -18,6 +18,9 @@ workflows:
       cocoapods: default
 
     scripts:
+      - name: Checkout submodules
+        script: cd "$CM_BUILD_DIR" && git submodule update --init --recursive
+
       - name: Flutter packages
         script: flutter pub get
 
@@ -67,6 +70,9 @@ workflows:
       cocoapods: default
 
     scripts:
+      - name: Checkout submodules
+        script: cd "$CM_BUILD_DIR" && git submodule update --init --recursive
+
       - name: Flutter packages
         script: flutter pub get
 
@@ -102,6 +108,9 @@ workflows:
       flutter: stable
 
     scripts:
+      - name: Checkout submodules
+        script: cd "$CM_BUILD_DIR" && git submodule update --init --recursive
+
       - name: Flutter packages
         script: flutter pub get
 
@@ -130,6 +139,11 @@ workflows:
       flutter: stable
 
     scripts:
+      - name: Checkout submodules
+        script: |
+          cd $env:CM_BUILD_DIR
+          git submodule update --init --recursive
+
       - name: Flutter packages
         script: flutter pub get
 

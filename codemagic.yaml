@@ -11,9 +11,6 @@ workflows:
       app_store_connect: Codemagic
 
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.peninsulathreat.resqruck
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -21,6 +18,18 @@ workflows:
     scripts:
       - name: Checkout submodules
         script: cd "$CM_BUILD_DIR" && git submodule update --init --recursive
+
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Fetch signing files from Apple
+        script: |
+          app-store-connect fetch-signing-files \
+            com.peninsulathreat.resqruck \
+            --type IOS_APP_STORE \
+            --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
+            --create
+          keychain add-certificates
 
       - name: Flutter packages
         script: flutter pub get

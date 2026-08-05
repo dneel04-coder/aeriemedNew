@@ -1,0 +1,3 @@
+[submodule "aeriemed"]
+	path = aeriemed
+	url = https://github.com/dneel04-coder/AerieMed.git

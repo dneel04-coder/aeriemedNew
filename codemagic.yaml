@@ -28,12 +28,14 @@ workflows:
             com.peninsulathreat.resqruck \
             --type IOS_APP_STORE \
             --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
-            --create
+            --create \
+            --delete-stale-profiles
           app-store-connect fetch-signing-files \
             com.peninsulathreat.resqruck.widget \
             --type IOS_APP_STORE \
             --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
-            --create
+            --create \
+            --delete-stale-profiles
           keychain add-certificates
 
       - name: Flutter packages

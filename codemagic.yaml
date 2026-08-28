@@ -40,12 +40,13 @@ workflows:
 
       - name: Delete any existing App Store profiles (force a clean regenerate)
         script: |
-          app-store-connect profiles list --type IOS_APP_STORE --json | python3 -c "
-import json, sys, subprocess
-for p in json.load(sys.stdin):
-    print('Deleting stale profile:', p.get('attributes', {}).get('name'), p['id'])
-    subprocess.run(['app-store-connect', 'profiles', 'delete', p['id'], '--ignore-not-found'])
-" || true
+          app-store-connect profiles list --type IOS_APP_STORE --json > /tmp/existing_profiles.json
+          python3 -c "import json; print('\n'.join(p['id'] for p in json.load(open('/tmp/existing_profiles.json'))))" > /tmp/profile_ids.txt
+          while IFS= read -r PROFILE_ID; do
+            [ -z "$PROFILE_ID" ] && continue
+            echo "Deleting stale profile: $PROFILE_ID"
+            app-store-connect profiles delete "$PROFILE_ID" --ignore-not-found || true
+          done < /tmp/profile_ids.txt
 
       - name: Fetch signing files from Apple
         script: |

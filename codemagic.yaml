@@ -25,7 +25,7 @@ workflows:
       - name: Ensure App Groups capability is enabled on both App IDs
         script: |
           for BUNDLE_ID in com.peninsulathreat.resqruck com.peninsulathreat.resqruck.widget; do
-            RESOURCE_ID=$(app-store-connect bundle-ids list --identifier "$BUNDLE_ID" --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['id'] if d else '')")
+            RESOURCE_ID=$(app-store-connect bundle-ids list --bundle-id-identifier "$BUNDLE_ID" --strict-match-identifier --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['id'] if d else '')")
             if [ -z "$RESOURCE_ID" ]; then
               echo "No App ID registered yet for $BUNDLE_ID -- fetch-signing-files --create will register it next."
               continue
@@ -38,20 +38,27 @@ workflows:
             app-store-connect bundle-ids capabilities "$RESOURCE_ID" || true
           done
 
+      - name: Delete any existing App Store profiles (force a clean regenerate)
+        script: |
+          app-store-connect profiles list --type IOS_APP_STORE --json | python3 -c "
+import json, sys, subprocess
+for p in json.load(sys.stdin):
+    print('Deleting stale profile:', p.get('attributes', {}).get('name'), p['id'])
+    subprocess.run(['app-store-connect', 'profiles', 'delete', p['id'], '--ignore-not-found'])
+" || true
+
       - name: Fetch signing files from Apple
         script: |
           app-store-connect fetch-signing-files \
             com.peninsulathreat.resqruck \
             --type IOS_APP_STORE \
             --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
-            --create \
-            --delete-stale-profiles
+            --create
           app-store-connect fetch-signing-files \
             com.peninsulathreat.resqruck.widget \
             --type IOS_APP_STORE \
             --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
-            --create \
-            --delete-stale-profiles
+            --create
           keychain add-certificates
 
       - name: Flutter packages

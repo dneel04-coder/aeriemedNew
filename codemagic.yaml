@@ -33,7 +33,7 @@ workflows:
             echo "$BUNDLE_ID -> $RESOURCE_ID"
             echo "Capabilities before:"
             app-store-connect bundle-ids capabilities "$RESOURCE_ID" || true
-            app-store-connect bundle-ids enable-capabilities "$RESOURCE_ID" --capability APP_GROUPS || true
+            app-store-connect bundle-ids enable-capabilities "$RESOURCE_ID" --capability "App Groups" || true
             echo "Capabilities after:"
             app-store-connect bundle-ids capabilities "$RESOURCE_ID" || true
           done

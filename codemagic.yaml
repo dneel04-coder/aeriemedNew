@@ -22,22 +22,6 @@ workflows:
       - name: Set up keychain
         script: keychain initialize
 
-      - name: Ensure App Groups capability is enabled on both App IDs
-        script: |
-          for BUNDLE_ID in com.peninsulathreat.resqruck com.peninsulathreat.resqruck.widget; do
-            RESOURCE_ID=$(app-store-connect bundle-ids list --bundle-id-identifier "$BUNDLE_ID" --strict-match-identifier --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['id'] if d else '')")
-            if [ -z "$RESOURCE_ID" ]; then
-              echo "No App ID registered yet for $BUNDLE_ID -- fetch-signing-files --create will register it next."
-              continue
-            fi
-            echo "$BUNDLE_ID -> $RESOURCE_ID"
-            echo "Capabilities before:"
-            app-store-connect bundle-ids capabilities "$RESOURCE_ID" || true
-            app-store-connect bundle-ids enable-capabilities "$RESOURCE_ID" --capability "App Groups" || true
-            echo "Capabilities after:"
-            app-store-connect bundle-ids capabilities "$RESOURCE_ID" || true
-          done
-
       - name: Delete any existing App Store profiles (force a clean regenerate)
         script: |
           app-store-connect profiles list --type IOS_APP_STORE --json > /tmp/existing_profiles.json
@@ -55,20 +39,10 @@ workflows:
             --type IOS_APP_STORE \
             --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
             --create
-          app-store-connect fetch-signing-files \
-            com.peninsulathreat.resqruck.widget \
-            --type IOS_APP_STORE \
-            --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
-            --create
           keychain add-certificates
 
       - name: Flutter packages
         script: flutter pub get
-
-      - name: Add home-screen widget extension target
-        script: |
-          gem install xcodeproj --no-document
-          cd ios && ruby add_widget_extension.rb
 
       - name: CocoaPods install
         script: cd ios && pod install

@@ -154,7 +154,7 @@ workflows:
           # simctl create fails immediately on an incompatible pairing,
           # which is a much more useful failure than that downstream one.
           RUNTIME=$(xcrun simctl list runtimes available | grep -i "iOS" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS[A-Za-z0-9-]*')
-          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPhone.*(Plus|Pro Max)" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
+          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPhone.*(Plus|Pro Max)" | head -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
           if [ -z "$RUNTIME" ] || [ -z "$DEVTYPE" ]; then
             echo "Could not resolve a runtime/device type pair -- see the list above and adjust the grep patterns."
             echo "RUNTIME=$RUNTIME DEVTYPE=$DEVTYPE"
@@ -182,7 +182,7 @@ workflows:
       - name: Capture 13in iPad screenshots
         script: |
           RUNTIME=$(xcrun simctl list runtimes available | grep -i "iOS" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS[A-Za-z0-9-]*')
-          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPad Pro.*13" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
+          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPad Pro.*13" | head -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
           if [ -z "$RUNTIME" ] || [ -z "$DEVTYPE" ]; then
             echo "Could not resolve a runtime/device type pair -- see the list above and adjust the grep patterns."
             echo "RUNTIME=$RUNTIME DEVTYPE=$DEVTYPE"

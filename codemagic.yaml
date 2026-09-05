@@ -135,6 +135,9 @@ workflows:
       - name: Flutter packages
         script: flutter pub get
 
+      - name: CocoaPods install
+        script: cd ios && pod install
+
       - name: List available simulators
         script: xcrun simctl list devices available
 
@@ -148,13 +151,19 @@ workflows:
           echo "Using iPhone simulator: $UDID"
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
+          rm -rf screenshots
           flutter drive \
             --driver=test_driver/integration_test.dart \
             --target=integration_test/screenshot_test.dart \
             -d "$UDID"
-          mkdir -p artifacts/iphone_6_5
-          mv screenshots/*.png artifacts/iphone_6_5/ 2>/dev/null || true
+          DRIVE_STATUS=$?
           xcrun simctl shutdown "$UDID" || true
+          if [ $DRIVE_STATUS -ne 0 ]; then
+            echo "flutter drive failed (exit $DRIVE_STATUS) -- no screenshots to collect."
+            exit $DRIVE_STATUS
+          fi
+          mkdir -p artifacts/iphone_6_5
+          mv screenshots/*.png artifacts/iphone_6_5/
 
       - name: Capture 13in iPad screenshots
         script: |
@@ -166,13 +175,19 @@ workflows:
           echo "Using iPad simulator: $UDID"
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
+          rm -rf screenshots
           flutter drive \
             --driver=test_driver/integration_test.dart \
             --target=integration_test/screenshot_test.dart \
             -d "$UDID"
-          mkdir -p artifacts/ipad_13
-          mv screenshots/*.png artifacts/ipad_13/ 2>/dev/null || true
+          DRIVE_STATUS=$?
           xcrun simctl shutdown "$UDID" || true
+          if [ $DRIVE_STATUS -ne 0 ]; then
+            echo "flutter drive failed (exit $DRIVE_STATUS) -- no screenshots to collect."
+            exit $DRIVE_STATUS
+          fi
+          mkdir -p artifacts/ipad_13
+          mv screenshots/*.png artifacts/ipad_13/
 
     artifacts:
       - artifacts/**/*.png

@@ -109,6 +109,82 @@ workflows:
           success: true
           failure: true
 
+  # ── iOS App Store screenshots (automated via integration_test) ───────────────
+  # Boots the required simulator sizes headless and drives the real app
+  # through integration_test/screenshot_test.dart, which seeds a fake
+  # logged-in/unlocked profile via SharedPreferences (no real login/paywall
+  # flow, no credentials needed) then navigates to a few key screens.
+  # test_driver/integration_test.dart saves each binding.takeScreenshot(...)
+  # call to screenshots/<name>.png. First run will likely need the simulator
+  # name patterns below adjusted once we see actual `simctl list` output on
+  # Codemagic's current Xcode image.
+  ios-screenshots:
+    name: iOS — App Store Screenshots
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    working_directory: aeriemed
+
+    environment:
+      flutter: stable
+      xcode: latest
+
+    scripts:
+      - name: Checkout submodules
+        script: cd "$CM_BUILD_DIR" && git submodule update --init --recursive
+
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: List available simulators
+        script: xcrun simctl list devices available
+
+      - name: Capture 6.5in-class iPhone screenshots
+        script: |
+          UDID=$(xcrun simctl list devices available | grep -iE "iPhone.*(Plus|Pro Max)" | tail -1 | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}')
+          if [ -z "$UDID" ]; then
+            echo "No matching 6.5in-class iPhone simulator found -- see the simulator list above and adjust the grep pattern."
+            exit 1
+          fi
+          echo "Using iPhone simulator: $UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/screenshot_test.dart \
+            -d "$UDID"
+          mkdir -p artifacts/iphone_6_5
+          mv screenshots/*.png artifacts/iphone_6_5/ 2>/dev/null || true
+          xcrun simctl shutdown "$UDID" || true
+
+      - name: Capture 13in iPad screenshots
+        script: |
+          UDID=$(xcrun simctl list devices available | grep -iE "iPad Pro.*13" | tail -1 | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}')
+          if [ -z "$UDID" ]; then
+            echo "No matching 13in iPad Pro simulator found -- see the simulator list above and adjust the grep pattern."
+            exit 1
+          fi
+          echo "Using iPad simulator: $UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/screenshot_test.dart \
+            -d "$UDID"
+          mkdir -p artifacts/ipad_13
+          mv screenshots/*.png artifacts/ipad_13/ 2>/dev/null || true
+          xcrun simctl shutdown "$UDID" || true
+
+    artifacts:
+      - artifacts/**/*.png
+
+    publishing:
+      email:
+        recipients:
+          - allamerican82consulting@gmail.com
+        notify:
+          success: true
+          failure: true
+
   # ── Android AAB (Play Store bundle) ──────────────────────────────────────────
   android-release:
     name: Android — AAB (Bundle)

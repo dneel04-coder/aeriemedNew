@@ -138,18 +138,31 @@ workflows:
       - name: CocoaPods install
         script: cd ios && pod install
 
-      - name: List available simulators
-        script: xcrun simctl list devices available
+      - name: List available runtimes and device types
+        script: |
+          xcrun simctl list runtimes available
+          echo "---"
+          xcrun simctl list devicetypes
 
       - name: Capture 6.5in-class iPhone screenshots
         script: |
-          UDID=$(xcrun simctl list devices available | grep -iE "iPhone.*(Plus|Pro Max)" | tail -1 | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}')
-          if [ -z "$UDID" ]; then
-            echo "No matching 6.5in-class iPhone simulator found -- see the simulator list above and adjust the grep pattern."
+          # Create a FRESH simulator from an installed runtime + device type
+          # rather than trusting a pre-existing device catalog entry -- a
+          # prior attempt picked an already-listed "available" device whose
+          # UDID Xcode's own build system didn't recognize as a valid
+          # destination at all ("Unable to find a destination matching").
+          # simctl create fails immediately on an incompatible pairing,
+          # which is a much more useful failure than that downstream one.
+          RUNTIME=$(xcrun simctl list runtimes available | grep -i "iOS" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS[A-Za-z0-9-]*')
+          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPhone.*(Plus|Pro Max)" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
+          if [ -z "$RUNTIME" ] || [ -z "$DEVTYPE" ]; then
+            echo "Could not resolve a runtime/device type pair -- see the list above and adjust the grep patterns."
+            echo "RUNTIME=$RUNTIME DEVTYPE=$DEVTYPE"
             exit 1
           fi
-          echo "Using iPhone simulator: $UDID"
-          xcrun simctl boot "$UDID" || true
+          echo "Creating iPhone simulator: $DEVTYPE / $RUNTIME"
+          UDID=$(xcrun simctl create "Screenshot-iPhone" "$DEVTYPE" "$RUNTIME")
+          xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
           rm -rf screenshots
           flutter drive \
@@ -158,6 +171,7 @@ workflows:
             -d "$UDID"
           DRIVE_STATUS=$?
           xcrun simctl shutdown "$UDID" || true
+          xcrun simctl delete "$UDID" || true
           if [ $DRIVE_STATUS -ne 0 ]; then
             echo "flutter drive failed (exit $DRIVE_STATUS) -- no screenshots to collect."
             exit $DRIVE_STATUS
@@ -167,13 +181,16 @@ workflows:
 
       - name: Capture 13in iPad screenshots
         script: |
-          UDID=$(xcrun simctl list devices available | grep -iE "iPad Pro.*13" | tail -1 | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}')
-          if [ -z "$UDID" ]; then
-            echo "No matching 13in iPad Pro simulator found -- see the simulator list above and adjust the grep pattern."
+          RUNTIME=$(xcrun simctl list runtimes available | grep -i "iOS" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS[A-Za-z0-9-]*')
+          DEVTYPE=$(xcrun simctl list devicetypes | grep -iE "iPad Pro.*13" | tail -1 | grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.[A-Za-z0-9-]+')
+          if [ -z "$RUNTIME" ] || [ -z "$DEVTYPE" ]; then
+            echo "Could not resolve a runtime/device type pair -- see the list above and adjust the grep patterns."
+            echo "RUNTIME=$RUNTIME DEVTYPE=$DEVTYPE"
             exit 1
           fi
-          echo "Using iPad simulator: $UDID"
-          xcrun simctl boot "$UDID" || true
+          echo "Creating iPad simulator: $DEVTYPE / $RUNTIME"
+          UDID=$(xcrun simctl create "Screenshot-iPad" "$DEVTYPE" "$RUNTIME")
+          xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
           rm -rf screenshots
           flutter drive \
@@ -182,6 +199,7 @@ workflows:
             -d "$UDID"
           DRIVE_STATUS=$?
           xcrun simctl shutdown "$UDID" || true
+          xcrun simctl delete "$UDID" || true
           if [ $DRIVE_STATUS -ne 0 ]; then
             echo "flutter drive failed (exit $DRIVE_STATUS) -- no screenshots to collect."
             exit $DRIVE_STATUS
